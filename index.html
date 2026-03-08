@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MEAD - Fueling Strategy</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🍯 MEAD</h1>
+            <p class="subtitle">Fueling Strategy Planner</p>
+        </header>
+
+        <main>
+            <!-- Athlete Profile Section -->
+            <section class="card">
+                <h2>Athlete Profile</h2>
+                <div class="form-group">
+                    <label for="weight">Weight (kg):</label>
+                    <input type="number" id="weight" step="0.1" placeholder="75">
+                </div>
+                <div class="form-group">
+                    <label for="goal">Goal:</label>
+                    <select id="goal">
+                        <option value="performance">Performance</option>
+                        <option value="recovery">Recovery</option>
+                        <option value="endurance">Endurance</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="gi">GI Tolerance:</label>
+                    <select id="gi">
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" onclick="saveAthleteProfile()">Save Profile</button>
+            </section>
+
+            <!-- Workouts Section -->
+            <section class="card">
+                <h2>Today's Workouts</h2>
+                <div id="workoutsList" class="workouts-list">
+                    <!-- Populated by JavaScript -->
+                </div>
+                <button class="btn btn-secondary" onclick="showAddWorkoutForm()">+ Add Workout</button>
+
+                <!-- Add Workout Form -->
+                <div id="addWorkoutForm" class="form-section" style="display: none;">
+                    <h3>Add New Workout</h3>
+                    <div class="form-group">
+                        <label for="sessionType">Type:</label>
+                        <input type="text" id="sessionType" placeholder="e.g., interval_run, strength">
+                    </div>
+                    <div class="form-group">
+                        <label for="sessionTime">Time (HH:MM):</label>
+                        <input type="time" id="sessionTime">
+                    </div>
+                    <div class="form-group">
+                        <label for="sessionDuration">Duration (minutes):</label>
+                        <input type="number" id="sessionDuration" placeholder="60">
+                    </div>
+                    <div class="form-group">
+                        <label for="sessionIntensity">Intensity:</label>
+                        <select id="sessionIntensity">
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="addWorkout()">Add Workout</button>
+                    <button class="btn btn-secondary" onclick="hideAddWorkoutForm()">Cancel</button>
+                </div>
+            </section>
+
+            <!-- Fueling Plan Section -->
+            <section class="card">
+                <h2>Today's Fueling Plan</h2>
+                <div id="fuelingPlan" class="fueling-plan">
+                    <!-- Populated by JavaScript -->
+                </div>
+                <button class="btn btn-primary" onclick="generatePlan()">Generate Plan</button>
+            </section>
+
+            <!-- Data Management Section -->
+            <section class="card">
+                <h2>Data Management</h2>
+                <div class="data-actions">
+                    <button class="btn btn-secondary" onclick="exportData()">📥 Export Data</button>
+                    <button class="btn btn-secondary" onclick="importData()">📤 Import Data</button>
+                    <input type="file" id="importFile" accept=".json" style="display: none;">
+                    <button class="btn btn-danger" onclick="clearAllData()">🗑️ Clear All Data</button>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2026 Fueling Strategy Planner</p>
+        </footer>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
