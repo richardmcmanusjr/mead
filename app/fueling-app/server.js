@@ -11,12 +11,8 @@ const PORT = 3001;
 app.use(cors());
 app.use(express.json());
 
-const USERNAME = process.env.VITE_GARMIN_USERNAME;
-const PASSWORD = process.env.VITE_GARMIN_PASSWORD;
-
-// Create a single Garmin instance that persists across requests
-let gc = null;
-let isAuthenticated = false;
+// Dynamic Garmin instances per user
+const garminInstances = {};
 let lastRequestTime = 0;
 const REQUEST_DELAY_MS = 2000; // 2 second delay between API calls
 const CACHE_TTL_MS = 60 * 60 * 1000; // Cache for 1 hour
@@ -81,30 +77,43 @@ async function withRetry(fn, maxRetries = MAX_RETRIES) {
   throw lastError;
 }
 
-async function initGarmin() {
-  if (gc && isAuthenticated) {
-    return gc;
+async function initGarmin(username, password) {
+  if (!username || !password) {
+    throw new Error('Missing username or password');
   }
 
-  if (!USERNAME || !PASSWORD) {
-    throw new Error('Missing VITE_GARMIN_USERNAME or VITE_GARMIN_PASSWORD in environment');
+  // Create a unique key for this user's credentials
+  const userKey = `${username}`;
+  
+  // Reuse existing instance if available
+  if (garminInstances[userKey]) {
+    console.log(`Using cached Garmin instance for ${username}`);
+    return garminInstances[userKey];
   }
 
-  gc = new GarminConnect.GarminConnect({
-    username: USERNAME,
-    password: PASSWORD,
+  const gc = new GarminConnect.GarminConnect({
+    username: username,
+    password: password,
   });
+  
   try {
-    console.log('Authenticating with Garmin...');
+    console.log(`Authenticating with Garmin for ${username}...`);
     await delayRequest();
     await gc.login();
-    isAuthenticated = true;
-    console.log('Successfully authenticated with Garmin');
+    console.log(`Successfully authenticated with Garmin for ${username}`);
+    
+    // Cache the instance
+    garminInstances[userKey] = gc;
+    
+    // Clear cache after 1 hour to force re-auth
+    setTimeout(() => {
+      delete garminInstances[userKey];
+      console.log(`Cleared Garmin instance for ${username}`);
+    }, CACHE_TTL_MS);
+    
     return gc;
   } catch (error) {
-    console.error('Garmin authentication failed:', error.message);
-    isAuthenticated = false;
-    gc = null; // Reset instance on auth failure
+    console.error(`Garmin authentication failed for ${username}:`, error.message);
     throw error;
   }
 }
@@ -112,6 +121,12 @@ async function initGarmin() {
 // Proxy endpoint for user info
 app.get('/api/user-info', async (req, res) => {
   try {
+    const { username, password } = req.query;
+    
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Missing username or password' });
+    }
+
     console.log('Fetching user profile...');
     
     // Check cache first
@@ -121,7 +136,7 @@ app.get('/api/user-info', async (req, res) => {
     }
     
     await delayRequest();
-    const garmin = await initGarmin();
+    const garmin = await initGarmin(username, password);
     
     const userProfile = await withRetry(async () => {
       return await garmin.getUserProfile();
@@ -152,6 +167,12 @@ app.get('/api/user-info', async (req, res) => {
 // Proxy endpoint for today's activities
 app.get('/api/today-activities', async (req, res) => {
   try {
+    const { username, password } = req.query;
+    
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Missing username or password' });
+    }
+    
     console.log('Fetching today activities...');
     
     // Check cache first
@@ -161,7 +182,7 @@ app.get('/api/today-activities', async (req, res) => {
     }
     
     await delayRequest();
-    const garmin = await initGarmin();
+    const garmin = await initGarmin(username, password);
     
     const allActivities = await withRetry(async () => {
       return await garmin.getActivities(0, 50);
@@ -198,6 +219,12 @@ app.get('/api/today-activities', async (req, res) => {
 // Proxy endpoint for upcoming activities (next 7 days)
 app.get('/api/upcoming-activities', async (req, res) => {
   try {
+    const { username, password } = req.query;
+    
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Missing username or password' });
+    }
+    
     console.log('Fetching upcoming activities...');
     
     // Check cache first
@@ -207,7 +234,7 @@ app.get('/api/upcoming-activities', async (req, res) => {
     }
     
     await delayRequest();
-    const garmin = await initGarmin();
+    const garmin = await initGarmin(username, password);
     
     const allActivities = await withRetry(async () => {
       return await garmin.getActivities(0, 100);
@@ -239,6 +266,12 @@ app.get('/api/upcoming-activities', async (req, res) => {
 // Proxy endpoint for sleep data
 app.get('/api/sleep-data', async (req, res) => {
   try {
+    const { username, password } = req.query;
+    
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Missing username or password' });
+    }
+    
     console.log('Fetching sleep data...');
     
     // Check cache first
@@ -248,7 +281,7 @@ app.get('/api/sleep-data', async (req, res) => {
     }
     
     await delayRequest();
-    const garmin = await initGarmin();
+    const garmin = await initGarmin(username, password);
     
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
