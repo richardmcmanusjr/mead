@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: mead-backend
+    runtime: node
+    rootDir: app/fueling-app
+    buildCommand: npm install
+    startCommand: npm run server
+    envVars:
+      - key: NODE_ENV
+        value: production
