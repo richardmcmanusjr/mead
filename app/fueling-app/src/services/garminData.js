@@ -1,4 +1,4 @@
-tail -f /tmp/backend.log// Garmin Connect Data Fetching Service - Using Backend Proxy
+// Garmin Connect Data Fetching Service - Using Backend Proxy
 // Fetches workout and activity data through a backend server to avoid CORS issues
 
 import { getStoredCredentials } from './garminAuth';
