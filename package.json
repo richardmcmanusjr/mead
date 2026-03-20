@@ -1,0 +1,13 @@
+{
+  "name": "mead",
+  "version": "1.0.0",
+  "description": "MEAD - Fueling Coach App",
+  "type": "module",
+  "scripts": {
+    "build": "cd app/fueling-app && npm install",
+    "start": "cd app/fueling-app && npm run server"
+  },
+  "engines": {
+    "node": "22"
+  }
+}
